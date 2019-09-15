@@ -3,31 +3,16 @@
 
 // @TODO: YOUR CODE HERE!
 // D3 Animated Scatter Plot
-
-// Section 1: Pre-Data Setup
-// ===========================
-// Before we code any data visualizations,
-// we need to at least set up the width, height and margins of the graph.
-// Note: I also added room for label text as well as text padding,
-// though not all graphs will need those specifications.
-
-// Grab the width of the containing box
 var width = parseInt(d3.select("#scatter").style("width"));
-
-// Designate the height of the graph
 var height = width - width / 3.9;
-
-// Margin spacing for graph
 var margin = 20;
-
-// space for placing words
 var labelArea = 110;
 
 // padding for the text at the bottom and left axes
-var tPadBot = 40;
-var tPadLeft = 40;
+var paddingBottom = 40;
+var paddingLeft = 40;
 
-// Create the actual canvas for the graph
+// Create canvas for the graph
 var svg = d3
   .select("#scatter")
   .append("svg")
@@ -36,30 +21,27 @@ var svg = d3
   .attr("class", "chart");
 
 // Set the radius for each dot that will appear in the graph.
-// Note: Making this a function allows us to easily call
-// it in the mobility section of our code.
-var circRadius;
-function crGet() {
+
+var circleRadius;
+function getCircle() {
   if (width <= 530) {
-    circRadius = 7;
+    circleRadius = 7;
   }
   else {
-    circRadius = 10;
+    circleRadius = 10;
   }
 }
-crGet();
+getCircle();
 
-// The Labels for our Axes
-
-// A) Bottom Axis
+// Bottom Axis
 // ==============
 
 // We create a group element to nest our bottom axes labels.
 svg.append("g").attr("class", "xText");
-// xText will allows us to select the group without excess code.
+// xText will allow to select the group without excess code.
 var xText = d3.select(".xText");
 
-// We give xText a transform property that places it at the bottom of the chart.
+// Give xText a transform property that places it at the bottom of the chart.
 // By nesting this attribute in a function, we can easily change the location of the label group
 // whenever the width of the window changes.
 function xTextRefresh() {
@@ -68,13 +50,13 @@ function xTextRefresh() {
     "translate(" +
       ((width - labelArea) / 2 + labelArea) +
       ", " +
-      (height - margin - tPadBot) +
+      (height - margin - paddingBottom) +
       ")"
   );
 }
 xTextRefresh();
 
-// Now we use xText to append three text SVG files, with y coordinates specified to space out the values.
+// Now use xText to append three text SVG files, with y coordinates specified to space out the values.
 // 1. Poverty
 xText
   .append("text")
@@ -104,7 +86,7 @@ xText
 // ============
 
 // Specifying the variables like this allows us to make our transform attributes more readable.
-var leftTextX = margin + tPadLeft;
+var leftTextX = margin + paddingLeft;
 var leftTextY = (height + labelArea) / 2 - labelArea;
 
 // We add a second label group, this time for the axis left of the chart.
@@ -123,7 +105,7 @@ function yTextRefresh() {
 }
 yTextRefresh();
 
-// Now we append the text.
+// append the text.
 // 1. Obesity
 yText
   .append("text")
@@ -151,33 +133,20 @@ yText
   .attr("class", "aText inactive y")
   .text("Lacks Healthcare (%)");
 
-// 2. Import our .csv file.
-// ========================
-// This data file includes state-by-state demographic data from the US Census
-// and measurements from health risks obtained
-// by the Behavioral Risk Factor Surveillance System.
-
 // Import our CSV data with d3's .csv import method.
 d3.csv("assets/data/data.csv").then(function(data) {
   // Visualize the data
   visualize(data);
 });
 
-// 3. Create our visualization function
-// ====================================
-// We called a "visualize" function on the data obtained with d3's .csv method.
-// This function handles the visual manipulation of all elements dependent on the data.
+// Create visualization function
+
 function visualize(theData) {
-  // PART 1: Essential Local Variables and Functions
-  // =================================
+  //  Essential Local Variables and Functions
   // curX and curY will determine what data gets represented in each axis.
-  // We designate our defaults here, which carry the same names
-  // as the headings in their matching .csv data file.
+  // Defaults here, which carry the same names as the headings in their matching .csv data file.
   var curX = "poverty";
   var curY = "healthcareLow";
-
-  // We also save empty variables for our the min and max values of x and y.
-  // this will allow us to alter the values in functions and remove repetitious code.
   var xMin;
   var xMax;
   var yMin;
@@ -213,15 +182,12 @@ function visualize(theData) {
       // Display what we capture.
       return theState + theX + theY;
     });
-  // Call the toolTip function.
   svg.call(toolTip);
 
-  // PART 2: D.R.Y!
-  // ==============
   // These functions remove some repitition from later code.
   // This will be more obvious in parts 3 and 4.
 
-  // a. change the min and max for x
+  // change the min and max for x
   function xMinMax() {
     // min will grab the smallest datum from the selected column.
     xMin = d3.min(theData, function(d) {
@@ -234,7 +200,7 @@ function visualize(theData) {
     });
   }
 
-  // b. change the min and max for y
+  // change the min and max for y
   function yMinMax() {
     // min will grab the smallest datum from the selected column.
     yMin = d3.min(theData, function(d) {
@@ -247,7 +213,7 @@ function visualize(theData) {
     });
   }
 
-  // c. change the classes (and appearance) of label text when clicked.
+  // change the classes (and appearance) of label text when clicked.
   function labelChange(axis, clickedText) {
     // Switch the currently active to inactive.
     d3
@@ -261,17 +227,10 @@ function visualize(theData) {
     clickedText.classed("inactive", false).classed("active", true);
   }
 
-  // Part 3: Instantiate the Scatter Plot
-  // ====================================
-  // This will add the first placement of our data and axes to the scatter plot.
-
-  // First grab the min and max values of x and y.
+  // Initialize the Scatter Plot
   xMinMax();
   yMinMax();
 
-  // With the min and max values now defined, we can create our scales.
-  // Notice in the range method how we include the margin and word area.
-  // This tells d3 to place our circles in an area starting after the margin and word area.
   var xScale = d3
     .scaleLinear()
     .domain([xMin, xMax])
@@ -301,9 +260,6 @@ function visualize(theData) {
   }
   tickCount();
 
-  // We append the axes in group elements. By calling them, we include
-  // all of the numbers, borders and ticks.
-  // The transform attribute specifies where to place the axes.
   svg
     .append("g")
     .call(xAxis)
@@ -328,7 +284,7 @@ function visualize(theData) {
     .attr("cy", function(d) {
       return yScale(d[curY]);
     })
-    .attr("r", circRadius)
+    .attr("r", circleRadius)
     .attr("class", function(d) {
       return "stateCircle " + d.abbr;
     })
@@ -346,9 +302,6 @@ function visualize(theData) {
       d3.select(this).style("stroke", "#e3e3e3");
     });
 
-  // With the circles on our graph, we need matching labels.
-  // Let's grab the state abbreviations from our data
-  // and place them in the center of our dots.
   theCircles
     .append("text")
     // We return the abbreviation to .text, which makes the text the abbreviation.
@@ -360,12 +313,9 @@ function visualize(theData) {
       return xScale(d[curX]);
     })
     .attr("dy", function(d) {
-      // When the size of the text is the radius,
-      // adding a third of the radius to the height
-      // pushes it into the middle of the circle.
-      return yScale(d[curY]) + circRadius / 2.5;
+      return yScale(d[curY]) + circleRadius / 2.5;
     })
-    .attr("font-size", circRadius)
+    .attr("font-size", circleRadius)
     .attr("class", "stateText")
     // Hover Rules
     .on("mouseover", function(d) {
@@ -381,20 +331,13 @@ function visualize(theData) {
       d3.select("." + d.abbr).style("stroke", "#e3e3e3");
     });
 
-  // Part 4: Make the Graph Dynamic
-  // ==========================
-  // This section will allow the user to click on any label
-  // and display the data it references.
+  // Make the Graph Dynamic
 
   // Select all axis text and add this d3 click event.
   d3.selectAll(".aText").on("click", function() {
-    // Make sure we save a selection of the clicked text,
-    // so we can reference it without typing out the invoker each time.
+
     var self = d3.select(this);
 
-    // We only want to run this on inactive labels.
-    // It's a waste of the processor to execute the function
-    // if the data is already displayed on the graph.
     if (self.classed("inactive")) {
       // Grab the name and axis saved in label.
       var axis = self.attr("data-axis");
@@ -416,9 +359,7 @@ function visualize(theData) {
 
         // With the axis changed, let's update the location of the state circles.
         d3.selectAll("circle").each(function() {
-          // Each state circle gets a transition for it's new attribute.
-          // This will lend the circle a motion tween
-          // from it's original spot to the new location.
+
           d3
             .select(this)
             .transition()
@@ -456,12 +397,8 @@ function visualize(theData) {
 
         // Update Y Axis
         svg.select(".yAxis").transition().duration(300).call(yAxis);
-
-        // With the axis changed, let's update the location of the state circles.
         d3.selectAll("circle").each(function() {
-          // Each state circle gets a transition for it's new attribute.
-          // This will lend the circle a motion tween
-          // from it's original spot to the new location.
+
           d3
             .select(this)
             .transition()
@@ -478,7 +415,7 @@ function visualize(theData) {
             .select(this)
             .transition()
             .attr("dy", function(d) {
-              return yScale(d[curY]) + circRadius / 3;
+              return yScale(d[curY]) + circleRadius / 3;
             })
             .duration(300);
         });
@@ -489,27 +426,18 @@ function visualize(theData) {
     }
   });
 
-  // Part 5: Mobile Responsive
-  // =========================
-  // With d3, we can call a resize function whenever the window dimensions change.
-  // This make's it possible to add true mobile-responsiveness to our charts.
+  // Mobile Responsive
+
   d3.select(window).on("resize", resize);
 
-  // One caveat: we need to specify what specific parts of the chart need size and position changes.
   function resize() {
-    // Redefine the width, height and leftTextY (the three variables dependent on the width of the window).
+
     width = parseInt(d3.select("#scatter").style("width"));
     height = width - width / 3.9;
     leftTextY = (height + labelArea) / 2 - labelArea;
-
-    // Apply the width and height to the svg canvas.
     svg.attr("width", width).attr("height", height);
-
-    // Change the xScale and yScale ranges
     xScale.range([margin + labelArea, width - margin]);
     yScale.range([height - margin - labelArea, margin]);
-
-    // With the scales changes, update the axes (and the height of the x-axis)
     svg
       .select(".xAxis")
       .call(xAxis)
@@ -517,15 +445,10 @@ function visualize(theData) {
 
     svg.select(".yAxis").call(yAxis);
 
-    // Update the ticks on each axis.
     tickCount();
-
-    // Update the labels.
     xTextRefresh();
     yTextRefresh();
-
-    // Update the radius of each dot.
-    crGet();
+    getCircle();
 
     // With the axis changed, let's update the location and radius of the state circles.
     d3
@@ -537,25 +460,25 @@ function visualize(theData) {
         return xScale(d[curX]);
       })
       .attr("r", function() {
-        return circRadius;
+        return circleRadius;
       });
 
     // We need change the location and size of the state texts, too.
     d3
       .selectAll(".stateText")
       .attr("dy", function(d) {
-        return yScale(d[curY]) + circRadius / 3;
+        return yScale(d[curY]) + circleRadius / 3;
       })
       .attr("dx", function(d) {
         return xScale(d[curX]);
       })
-      .attr("r", circRadius / 3);
+      .attr("r", circleRadius / 3);
   }
 }
 
 
 
-
+// Level 1 D3-Dabbler
 /*var svgWidth = 870;
 var svgHeight = 500;
 
